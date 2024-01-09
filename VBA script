@@ -1,0 +1,45 @@
+Sub CreateNamedRangesForConstants()
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim lastCol As Long
+    Dim i As Long, j As Long
+    Dim headerName As String
+    Dim cellName As String
+    Dim cellValue As Variant
+    
+    ' Set reference to the "Energy_Star_Scope_1_Constants" sheet
+    Set ws = ThisWorkbook.Sheets("Energy_Star_Scope_1_Constants")
+    
+    ' Find the last row and column with data
+    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+    lastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column
+    
+    ' Loop through each cell in the table, skipping the first row and column
+    For i = 2 To lastRow
+        For j = 2 To lastCol
+            ' Get the name for the named range from the header and the fuel type
+            headerName = ws.Cells(1, j).Value
+            cellName = ws.Cells(i, 1).Value & "_" & headerName
+            
+            ' Make the cell name valid by replacing spaces and special characters with underscores
+            cellName = Application.WorksheetFunction.Substitute(cellName, " ", "_")
+            cellName = Application.WorksheetFunction.Substitute(cellName, ".", "_")
+            cellName = Application.WorksheetFunction.Substitute(cellName, "(", "_")
+            cellName = Application.WorksheetFunction.Substitute(cellName, ")", "_")
+            cellName = Application.WorksheetFunction.Substitute(cellName, "/", "_per_")
+
+            ' Check if the cell name starts with a number, prefix with an underscore if it does
+            If IsNumeric(Left(cellName, 1)) Then
+                cellName = "_" & cellName
+            End If
+            
+            ' Get the cell value
+            cellValue = ws.Cells(i, j).Value
+            
+            ' Create the named range if the cell name is valid and the value is numeric
+            If cellName <> "" And IsNumeric(cellValue) Then
+                ThisWorkbook.Names.Add Name:=cellName, RefersTo:=ws.Cells(i, j)
+            End If
+        Next j
+    Next i
+End Sub
